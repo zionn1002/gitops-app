@@ -52,6 +52,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Docker 빌드 및 Push
+        working-directory: ops-app
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.tag }}
         run: |
