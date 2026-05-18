@@ -61,41 +61,41 @@ jobs:
           docker tag $DOCKERHUB_IMAGE:$IMAGE_TAG $DOCKERHUB_IMAGE:latest
           docker push $DOCKERHUB_IMAGE:latest
 
-  # update-config:
-  #   name: Update Config Repo
-  #   needs: ci
-  #   runs-on: ubuntu-24.04
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  update-config:
+    name: Update Config Repo
+    needs: ci
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
-  #   steps:
-  #     - name: Config Repo 체크아웃
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: ${{ env.CONFIG_REPO }}
-  #         token: ${{ secrets.CONFIG_REPO_PAT }}
-  #         path: config-repo
+    steps:
+      - name: Config Repo 체크아웃
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.CONFIG_REPO }}
+          token: ${{ secrets.CONFIG_REPO_PAT }}
+          path: config-repo
 
-  #     - name: Kustomize 설치
-  #       run: |
-  #         curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-  #         sudo mv kustomize /usr/local/bin/
+      - name: Kustomize 설치
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
 
-  #     - name: dev 이미지 태그 업데이트
-  #       env:
-  #         IMAGE_TAG: ${{ needs.ci.outputs.image-tag }}
-  #       run: |
-  #         cd config-repo/${{ env.CONFIG_REPO_PATH }}/dev
-  #         kustomize edit set image \
-  #           nginx=your-dockerhub-username/gitops-app:$IMAGE_TAG
+      - name: dev 이미지 태그 업데이트
+        env:
+          IMAGE_TAG: ${{ needs.ci.outputs.image-tag }}
+        run: |
+          cd config-repo/${{ env.CONFIG_REPO_PATH }}/dev
+          kustomize edit set image \
+            gitops-app=zionn1002/gitops-app:$IMAGE_TAG
 
-  #     - name: Config Repo 커밋 및 Push
-  #       env:
-  #         IMAGE_TAG: ${{ needs.ci.outputs.image-tag }}
-  #       run: |
-  #         cd config-repo
-  #         git config user.name "github-actions[bot]"
-  #         git config user.email "github-actions[bot]@users.noreply.github.com"
-  #         git add .
-  #         git diff --staged --quiet || git commit \
-  #           -m "chore: update dev image to $IMAGE_TAG [skip ci]"
-  #         git push
+      - name: Config Repo 커밋 및 Push
+        env:
+          IMAGE_TAG: ${{ needs.ci.outputs.image-tag }}
+        run: |
+          cd config-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --staged --quiet || git commit \
+            -m "chore: update dev image to $IMAGE_TAG [skip ci]"
+          git push
