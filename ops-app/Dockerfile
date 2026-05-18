@@ -17,7 +17,6 @@ WORKDIR /app
 
 # JAR 복사 및 권한 설정
 COPY --from=builder /app/target/*.jar app.jar
-RUN chown spring:spring app.jar
 
 EXPOSE 8080
 
