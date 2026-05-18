@@ -10,7 +10,7 @@ public class ApiOpsController {
 	
 	@GetMapping("/ops")
 	public String OpsTest() {
-		return  "Get - /api/ops";
+		return "Get - /api/ops";
 	}
 	
 	@GetMapping("/health")
@@ -20,7 +20,6 @@ public class ApiOpsController {
 	
 	@GetMapping("/feat-ops")
 	public String opsCheck() {
-		return "Get -/api/feat-ops";
+		return "Get - /api/feat-ops";
 	}
 }
- 
