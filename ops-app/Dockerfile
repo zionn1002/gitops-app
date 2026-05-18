@@ -18,7 +18,7 @@ WORKDIR /app
 # JAR 복사 및 권한 설정
 COPY --from=builder /app/target/*.jar app.jar
 
-EXPOSE 8081
+EXPOSE 8080
 
 # 헬스체크 (Actuator 필요)
 # HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
