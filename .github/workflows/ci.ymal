@@ -6,15 +6,15 @@ on:
     branches: [main]
     paths:
       - 'ops-app/**'
-      - 'github/workflows/ci.yml'
+      - '.github/workflows/ci.yaml'
   pull_request:
     branches: [main]
     paths:
       - 'ops-app/**'
-      
+
 env:
-  DOCKERHUB_IMAGE: zionn1002/gitops-app
-  CONFIG_REPO: zionn1002/gitops-config
+  DOCKERHUB_IMAGE: dockerlecture/gitops-app
+  CONFIG_REPO: Lecture-SHIN/gitops-config
   CONFIG_REPO_PATH: apps/gitops-app/overlays
 
 permissions:
