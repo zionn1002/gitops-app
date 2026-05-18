@@ -86,7 +86,7 @@ jobs:
         run: |
           cd config-repo/${{ env.CONFIG_REPO_PATH }}/dev
           kustomize edit set image \
-            gitops-app=zionn1002/gitops-app:$IMAGE_TAG
+            gitops-app=dockerlecture/gitops-app:$IMAGE_TAG
 
       - name: Config Repo 커밋 및 Push
         env:
