@@ -13,8 +13,8 @@ on:
       - 'ops-app/**'
 
 env:
-  DOCKERHUB_IMAGE: /gitops-app
-  CONFIG_REPO: /gitops-config
+  DOCKERHUB_IMAGE: zionn1002/gitops-app
+  CONFIG_REPO: zionn1002/gitops-config
   CONFIG_REPO_PATH: apps/gitops-app/overlays
 
 permissions:
