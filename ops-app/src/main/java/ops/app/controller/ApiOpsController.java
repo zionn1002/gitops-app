@@ -17,5 +17,10 @@ public class ApiOpsController {
 	public String healthCheck() {
 		return "OK\n";
 	}
+	
+	@GetMapping("/feat-ops")
+	public String opsCheck() {
+		return "Get -/api/feat-ops";
+	}
 }
  
