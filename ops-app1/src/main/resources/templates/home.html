@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ops-app1</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; }
+        h1 { color: #2c3e50; }
+        .profile { color: #27ae60; font-weight: bold; }
+        .endpoints { background: #ecf0f1; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1 th:text="${appName}">ops-app1</h1>
+    <p>프로파일: <span class="profile" th:text="${profile}">default</span></p>
+    <p th:text="${message}">Hello</p>
+
+    <div class="endpoints">
+        <h3>사용 가능한 엔드포인트</h3>
+        <ul>
+            <li>GET /api/orders — ops-app2 호출 (분산 호출 검증)</li>
+            <li>GET /load?type=slow|error|cpu — 부하 시뮬레이션</li>
+            <li>GET /error-trigger — 의도적 에러</li>
+            <li>GET /actuator/health — 헬스 체크</li>
+            <li>GET /actuator/metrics — 메트릭</li>
+        </ul>
+    </div>
+</body>
+</html>

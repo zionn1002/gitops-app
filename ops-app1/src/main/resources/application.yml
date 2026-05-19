@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: ops-app1
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: true
+
+server:
+  port: 8080
+
+app:
+  profile: ${PROFILE:default}
+  ops-app2-url: ${OPS_APP2_URL:http://ops-app2:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    ops.app1: INFO
+    org.springframework.web: INFO
