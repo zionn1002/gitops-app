@@ -1,4 +1,3 @@
-# gitops-app/.github/workflows/ci-ops-app1.yml
 name: CI ops-app1 (ECR)
 
 on:
@@ -6,30 +5,26 @@ on:
     branches: [main]
     paths:
       - "ops-app1/**"
-      - ".github/workflows/ci-ops-app1.yml"
+      - ".github/workflows/ci-ops-app1.yaml"
 
 env:
   APP_NAME: ops-app1
   ECR_REPOSITORY: ops-app1
   AWS_REGION: ap-northeast-2
-  GITHUB_ORG: superb-dev
   CONFIG_REPO: ${{ github.repository_owner }}/gitops-config
   CONFIG_REPO_PATH: apps/ops-app1/overlays
 
 permissions:
-  id-token: write # OIDC 토큰 발급 필수
+  id-token: write
   contents: read
 
 jobs:
   ci:
     name: Build and Push to ECR
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: ./ops-app1
     outputs:
-      image-tag: ${{ steps.tag.outputs.tag }}
-      image-uri: ${{ steps.tag.outputs.uri }}
+      image-repo-tag: ${{ steps.export.outputs.image-repo-tag }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -41,6 +36,7 @@ jobs:
           cache: "maven"
 
       - name: Maven 테스트
+        working-directory: ./ops-app1
         run: mvn test -q
 
       - name: AWS OIDC 인증
@@ -50,36 +46,37 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: ECR 로그인
-        id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 이미지 태그·URI 생성
-        id: tag
+      - name: Docker 빌드 및 ECR Push
+        working-directory: ./ops-app1
         run: |
           TAG="sha-${GITHUB_SHA::7}"
-          URI="${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${TAG}"
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
-          echo "uri=${URI}" >> $GITHUB_OUTPUT
+          REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com"
+          URI="${REGISTRY}/${{ env.ECR_REPOSITORY }}:${TAG}"
 
-      - name: Docker Buildx 설정
-        uses: docker/setup-buildx-action@v3
+          docker build -t ${URI} .
+          docker push ${URI}
 
-      - name: ECR Push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./ops-app1
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.tag.outputs.uri }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          echo "IMAGE_TAG=${TAG}" >> $GITHUB_ENV
+
+      - name: Export image outputs
+        id: export
+        run: |
+          echo "image-repo-tag=${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "확인 image-repo-tag=${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
 
   update-config:
     name: Update Config Repo
     needs: ci
     runs-on: ubuntu-24.04
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     steps:
+      - name: 값 확인
+        run: |
+          echo "image-repo-tag=${{ needs.ci.outputs.image-repo-tag }}"
+
       - name: Config Repo 체크아웃
         uses: actions/checkout@v4
         with:
@@ -92,21 +89,21 @@ jobs:
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
           sudo mv kustomize /usr/local/bin/
 
-      - name: dev overlay 이미지 업데이트 (ECR URI)
-        env:
-          IMAGE_URI: ${{ needs.ci.outputs.image-uri }}
+      - name: dev overlay 이미지 업데이트
         run: |
+          # update-config job 에서 registry 직접 조합
+          FULL_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ needs.ci.outputs.image-repo-tag }}"
+          echo "Updated: ${{ env.APP_NAME }}=${FULL_URI}"
           cd config-repo/${{ env.CONFIG_REPO_PATH }}/dev
-          kustomize edit set image ${{ env.APP_NAME }}=$IMAGE_URI
+          kustomize edit set image ${{ env.APP_NAME }}=${FULL_URI}
 
       - name: Config Repo 커밋·Push
-        env:
-          IMAGE_URI: ${{ needs.ci.outputs.image-uri }}
         run: |
+          FULL_URI="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ needs.ci.outputs.image-repo-tag }}"
           cd config-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git diff --staged --quiet || git commit \
-            -m "chore: update ${{ env.APP_NAME }} eks-dev image to $IMAGE_URI [skip ci]"
+            -m "chore: update ${{ env.APP_NAME }} dev image to ${FULL_URI} [skip ci]"
           git push
