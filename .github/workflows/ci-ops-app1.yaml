@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - "ops-app1/**"
-      - ".github/workflows/ci-ops-app1.yaml"
+      - ".github/workflows/ci-ops-app1.yml"
 
 env:
   APP_NAME: ops-app1
