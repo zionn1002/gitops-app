@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "ops-app2/**"
+      - "ops-app3/**"
       - ".github/workflows/ci-ops-app2.yaml"
 
 env:
